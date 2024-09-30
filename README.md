@@ -1,8 +1,11 @@
-# React + Vite
+# W4153-No-Bug-No-Life-P1-UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+This is the UI repo for the Columbia Forum project.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Installation
+
+We use Vite + React to build this UI application.
+
+Please ensure that you have npm installed. Run `npm install` to install all the dependencies.

@@ -8,13 +8,25 @@ const SignupPage = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // todo: add signup logic here
-        if (password !== confirmPassword) {
-            alert("Passwords don't match!");
+        // send http request to microservice
+        const response = await fetch(`http://44.210.131.186:3000/auth/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                username: username,
+                password: password,
+            })
+        });
+
+        if (response.ok) {
+            alert("Successfully signed up");
         } else {
-            console.log('Signing up with:', { username, email, password });
+            console.log(response);
         }
     };
 

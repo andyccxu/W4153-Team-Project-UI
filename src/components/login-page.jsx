@@ -1,15 +1,33 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = (e) => {
+    // navigate hook
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // todo: add login logic here
-        console.log('Logging in with:', { username, password });
+        // send http request to microservice
+        const response = await fetch(`http://44.210.131.186:3000/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+            })
+        });
+
+        if (response.ok) {
+            navigate('/chat');   // todo: update this page
+        } else {
+            console.log(response);
+        }
     };
 
     return (
@@ -18,13 +36,13 @@ const LoginPage = () => {
                 <h2 className="text-center mb-4">Login to <br/> Columbia Forum</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                        <label htmlFor="username" className="form-label">Username</label>
+                        <label htmlFor="email" className="form-label">Email</label>
                         <input
-                            type="username"
-                            id="username"
+                            type="email"
+                            id="email"
                             className="form-control"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                             placeholder="example@columbia.edu"
                         />

@@ -3,36 +3,35 @@ import './chat-page.css';
 
 const initialFriendsList = [
     { id: 1, name: 'Alice', messages: [] },
-    { id: 2, name: 'Bob', messages: [] },
-    { id: 3, name: 'Charlie', messages: [] },
-    { id: 4, name: 'Dave', messages: [] },
 ];
 
-// Initial groups with members and messages
 const initialGroups = [
     { id: 1, name: 'Group 1', members: [1, 2], messages: [{ sender: 'Alice', content: 'Welcome to Group 1!' }] },
     { id: 2, name: 'Group 2', members: [3, 4], messages: [{ sender: 'Charlie', content: 'Welcome to Group 2!' }] }
 ];
 
-const currentUser = 'You'; // Mock the current user as "You"
+const currentUser = 'You';
 
 const ChatPage = () => {
     const [friendsList, setFriendsList] = useState(initialFriendsList);
-    const [groupsList, setGroupsList] = useState(initialGroups); // For managing groups
-    const [selectedChat, setSelectedChat] = useState({ type: 'private', id: 1 }); // Track which chat is selected (private or group)
+    const [groupsList, setGroupsList] = useState(initialGroups);
+    const [selectedChat, setSelectedChat] = useState({ type: 'private', id: 1 });
     const [newMessage, setNewMessage] = useState('');
     const [newFriendName, setNewFriendName] = useState('');
     const [newGroupName, setNewGroupName] = useState('');
+
 
     const handleChatClick = (type, id) => {
         setSelectedChat({ type, id });
     };
 
-    const handleSendMessage = (e) => {
+    const handleSendMessage = async (e) => {
         e.preventDefault();
         if (newMessage.trim() !== '') {
+            let updatedChats = [];
+
             if (selectedChat.type === 'private') {
-                const updatedChats = friendsList.map((friend) => {
+                updatedChats = friendsList.map((friend) => {
                     if (friend.id === selectedChat.id) {
                         return {
                             ...friend,
@@ -42,6 +41,25 @@ const ChatPage = () => {
                     return friend;
                 });
                 setFriendsList(updatedChats);
+
+                try {
+                    const response = await fetch('http://44.215.29.97:8000/chat-history', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            sender: currentUser,
+                            recipient: updatedChats.find(friend => friend.id === selectedChat.id).name,
+                            message: newMessage,
+                        }),
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to send message');
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                }
             } else if (selectedChat.type === 'group') {
                 const updatedGroups = groupsList.map((group) => {
                     if (group.id === selectedChat.id) {
@@ -53,16 +71,37 @@ const ChatPage = () => {
                     return group;
                 });
                 setGroupsList(updatedGroups);
+
+                try {
+                    const response = await fetch('http://44.215.29.97:8000/chat-history', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            sender: currentUser,
+                            group: updatedGroups.find(group => group.id === selectedChat.id).name,
+                            message: newMessage,
+                        }),
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to send message');
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                }
             }
+
             setNewMessage('');
         }
     };
+
 
     const handleAddNewFriend = () => {
         if (newFriendName.trim() !== '') {
             const newFriendId = friendsList.length + 1;
             setFriendsList([...friendsList, { id: newFriendId, name: newFriendName }]);
-            setNewFriendName(''); // Clear input
+            setNewFriendName('');
         }
     };
 
@@ -70,11 +109,10 @@ const ChatPage = () => {
         if (newGroupName.trim() !== '') {
             const newGroupId = groupsList.length + 1;
             setGroupsList([...groupsList, { id: newGroupId, name: newGroupName, members: [], messages: [] }]);
-            setNewGroupName(''); // Clear input
+            setNewGroupName('');
         }
     };
 
-    // Retrieve messages for private chat or group chat
     const getChatMessages = () => {
         if (selectedChat.type === 'private') {
             const selectedFriend = friendsList.find((f) => f.id === selectedChat.id);
@@ -88,7 +126,7 @@ const ChatPage = () => {
 
     return (
         <div className="chat-page">
-            {/* Friends List Section */}
+            <div className="friends-and-groups">
             <div className="friends-list">
                 <h2>Friends</h2>
                 {friendsList.map((friend) => (
@@ -101,7 +139,6 @@ const ChatPage = () => {
                     </div>
                 ))}
 
-                {/* Button to add a new friend */}
                 <div className="add-friend-section">
                     <input
                         type="text"
@@ -113,7 +150,6 @@ const ChatPage = () => {
                 </div>
             </div>
 
-            {/* Groups List Section */}
             <div className="groups-list">
                 <h2>Groups</h2>
                 {groupsList.map((group) => (
@@ -126,7 +162,6 @@ const ChatPage = () => {
                     </div>
                 ))}
 
-                {/* Button to add a new group */}
                 <div className="add-group-section">
                     <input
                         type="text"
@@ -137,8 +172,8 @@ const ChatPage = () => {
                     <button onClick={handleAddNewGroup}>Add New Group</button>
                 </div>
             </div>
+            </div>
 
-            {/* Chat Section */}
             <div className="chat-section">
                 <div className="chat-header">
                     <h2>

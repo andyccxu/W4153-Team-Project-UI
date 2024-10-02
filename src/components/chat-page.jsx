@@ -1,67 +1,93 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './chat-page.css';
 
-const initialFriendsList = [
-    { id: 1, name: 'Alice', messages: [] },
-];
 
-const initialGroups = [
-    { id: 1, name: 'Group 1', members: [1, 2], messages: [{ sender: 'Alice', content: 'Welcome to Group 1!' }] },
-    { id: 2, name: 'Group 2', members: [3, 4], messages: [{ sender: 'Charlie', content: 'Welcome to Group 2!' }] }
-];
-
-const currentUser = 'You';
+const currentUser = 'user1';
 
 const ChatPage = () => {
-    const [friendsList, setFriendsList] = useState(initialFriendsList);
-    const [groupsList, setGroupsList] = useState(initialGroups);
+    const [friendsList, setFriendsList] = useState([
+        {
+            id: 1,
+            name: 'user2',
+            messages: [
+                { sender: 'user2', content: 'Hey, how are you?' },
+            ]
+        }
+    ]);
+    const [groupsList, setGroupsList] = useState([]);
     const [selectedChat, setSelectedChat] = useState({ type: 'private', id: 1 });
     const [newMessage, setNewMessage] = useState('');
     const [newFriendName, setNewFriendName] = useState('');
     const [newGroupName, setNewGroupName] = useState('');
+    const [chatMessages, setChatMessages] = useState([]);
+    const [websocket, setWebSocket] = useState(null);
 
+
+    const initializeWebSocket = () => {
+        const ws = new WebSocket(`ws://44.215.29.97:8000/ws/${currentUser}`);
+
+        ws.onopen = () => {
+            console.log('WebSocket connection established');
+        };
+
+        ws.onmessage = (event) => {
+            const receivedMessage = event.data;
+            setChatMessages((prevMessages) => [...prevMessages, receivedMessage]);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket connection closed. Reconnecting...');
+            setTimeout(() => initializeWebSocket(), 5000);
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        setWebSocket(ws);
+    };
+
+    useEffect(() => {
+        initializeWebSocket();
+        return () => {
+            if (websocket) {
+                websocket.close();  // Clean up WebSocket connection on unmount
+            }
+        };
+    }, []);
 
     const handleChatClick = (type, id) => {
         setSelectedChat({ type, id });
+        const messages = type === 'private'
+            ? friendsList.find((friend) => friend.id === id).messages|| []
+            : groupsList.find((group) => group.id === id).messages|| [];
+        setChatMessages(messages);
     };
 
-    const handleSendMessage = async (e) => {
+    const handleSendMessage = (e) => {
         e.preventDefault();
-        if (newMessage.trim() !== '') {
-            let updatedChats = [];
+        if (newMessage.trim() !== '' && websocket && websocket.readyState === WebSocket.OPEN) {
+            let messageToSend = '';
 
             if (selectedChat.type === 'private') {
-                updatedChats = friendsList.map((friend) => {
+                const recipient = friendsList.find(friend => friend.id === selectedChat.id)?.name;
+                messageToSend = `${recipient}:${newMessage}`;
+
+                const updatedFriends = friendsList.map(friend => {
                     if (friend.id === selectedChat.id) {
                         return {
                             ...friend,
-                            messages: [...friend.messages, { sender: currentUser, content: newMessage }]
+                            messages: [...friend.messages, { sender: 'user1', content: newMessage }]
                         };
                     }
                     return friend;
                 });
-                setFriendsList(updatedChats);
-
-                try {
-                    const response = await fetch('http://44.215.29.97:8000/chat-history', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            sender: currentUser,
-                            recipient: updatedChats.find(friend => friend.id === selectedChat.id).name,
-                            message: newMessage,
-                        }),
-                    });
-                    if (!response.ok) {
-                        throw new Error('Failed to send message');
-                    }
-                } catch (error) {
-                    console.error('Error sending message:', error);
-                }
+                setFriendsList(updatedFriends);
             } else if (selectedChat.type === 'group') {
-                const updatedGroups = groupsList.map((group) => {
+                const groupName = groupsList.find(group => group.id === selectedChat.id)?.name;
+                messageToSend = `group:${groupName}:${newMessage}`;
+
+                const updatedGroups = groupsList.map(group => {
                     if (group.id === selectedChat.id) {
                         return {
                             ...group,
@@ -71,30 +97,90 @@ const ChatPage = () => {
                     return group;
                 });
                 setGroupsList(updatedGroups);
-
-                try {
-                    const response = await fetch('http://44.215.29.97:8000/chat-history', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            sender: currentUser,
-                            group: updatedGroups.find(group => group.id === selectedChat.id).name,
-                            message: newMessage,
-                        }),
-                    });
-                    if (!response.ok) {
-                        throw new Error('Failed to send message');
-                    }
-                } catch (error) {
-                    console.error('Error sending message:', error);
-                }
             }
 
+            websocket.send(messageToSend);
+
+            setChatMessages([...chatMessages, { sender: currentUser, content: newMessage }]);
+
             setNewMessage('');
+        } else {
+            console.error('WebSocket is not open or message is empty');
         }
     };
+
+
+
+    // const handleSendMessage = async (e) => {
+    //     e.preventDefault();
+    //     if (newMessage.trim() !== '') {
+    //         let updatedChats = [];
+    //
+    //         if (selectedChat.type === 'private') {
+    //             updatedChats = friendsList.map((friend) => {
+    //                 if (friend.id === selectedChat.id) {
+    //                     return {
+    //                         ...friend,
+    //                         messages: [...friend.messages, { sender: currentUser, content: newMessage }]
+    //                     };
+    //                 }
+    //                 return friend;
+    //             });
+    //             setFriendsList(updatedChats);
+    //
+    //             try {
+    //                 const response = await fetch('http://44.215.29.97:8000/ws/{username}', {
+    //                     method: 'POST',
+    //                     headers: {
+    //                         'Content-Type': 'application/json',
+    //                     },
+    //                     body: JSON.stringify({
+    //                         sender: currentUser,
+    //                         recipient: updatedChats.find(friend => friend.id === selectedChat.id).name,
+    //                         message: newMessage,
+    //                     }),
+    //                 });
+    //                 if (!response.ok) {
+    //                     throw new Error('Failed to send message');
+    //                 }
+    //             } catch (error) {
+    //                 console.error('Error sending message:', error);
+    //             }
+    //         } else if (selectedChat.type === 'group') {
+    //             const updatedGroups = groupsList.map((group) => {
+    //                 if (group.id === selectedChat.id) {
+    //                     return {
+    //                         ...group,
+    //                         messages: [...group.messages, { sender: currentUser, content: newMessage }]
+    //                     };
+    //                 }
+    //                 return group;
+    //             });
+    //             setGroupsList(updatedGroups);
+    //
+    //             try {
+    //                 const response = await fetch('http://44.215.29.97:8000/ws/user1', {
+    //                     method: 'POST',
+    //                     headers: {
+    //                         'Content-Type': 'application/json',
+    //                     },
+    //                     body: JSON.stringify({
+    //                         sender: currentUser,
+    //                         group: updatedGroups.find(group => group.id === selectedChat.id).name,
+    //                         message: newMessage,
+    //                     }),
+    //                 });
+    //                 if (!response.ok) {
+    //                     throw new Error('Failed to send message');
+    //                 }
+    //             } catch (error) {
+    //                 console.error('Error sending message:', error);
+    //             }
+    //         }
+    //
+    //         setNewMessage('');
+    //     }
+    // };
 
 
     const handleAddNewFriend = () => {
@@ -169,7 +255,7 @@ const ChatPage = () => {
                         onChange={(e) => setNewGroupName(e.target.value)}
                         placeholder="New group name"
                     />
-                    <button onClick={handleAddNewGroup}>Add New Group</button>
+                    <button onClick={handleAddNewGroup}>Create Group</button>
                 </div>
             </div>
             </div>

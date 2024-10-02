@@ -1,12 +1,13 @@
 .chat-page {
     display: flex;
+    flex-direction: row;
     height: 100vh;
     background-color: #2c2f33;
     color: white;
     font-family: 'Arial', sans-serif;
 }
 
-.friends-list, .groups-list {
+.friends-and-groups {
     width: 25%;
     background-color: #23272a;
     padding: 20px;
@@ -14,6 +15,15 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+}
+
+
+.friends-list {
+    margin-bottom: 20px; /* Space between friends and groups */
+}
+
+.groups-list {
+    margin-top: 20px;
 }
 
 .friend-item, .group-item {

@@ -11,7 +11,7 @@ on:
 env:
   PROJECT_ID: w4153-cloud-computing
   REGION: us-east4
-  GAR_LOCATION: us-east4-docker.pkg.dev/w4153-cloud-computing/ui-app/
+  GAR_LOCATION: us-east4-docker.pkg.dev/w4153-cloud-computing/file-man-repo
 
 jobs:
   build-push-artifact:
@@ -32,11 +32,10 @@ jobs:
         run: "gcloud info"
 
       - name: "Docker auth"
-        run: |-
-          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: Build image
-        run: docker build . --file ./Dockerfile --tag "${{ env.GAR_LOCATION }}${{ github.sha }}"
+        run: docker build . --file ./Dockerfile --tag "${{ env.GAR_LOCATION }}/${{ github.sha }}"
 
       - name: Push image
-        run: docker push "${{ env.GAR_LOCATION }}${{ github.sha }}"
+        run: docker push "${{ env.GAR_LOCATION }}/${{ github.sha }}"

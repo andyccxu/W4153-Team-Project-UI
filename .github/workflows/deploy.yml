@@ -1,4 +1,4 @@
-name: Build and Push to Artifact Registry
+name: Build, Push to Artifact Registry, and Deploy to Cloud Run
 
 on:
   push:
@@ -12,9 +12,10 @@ env:
   PROJECT_ID: w4153-cloud-computing
   REGION: us-east4
   GAR_LOCATION: us-east4-docker.pkg.dev/w4153-cloud-computing/ui-app-repo
+  CR_SERVICE_NAME: ui-app
 
 jobs:
-  build-push-artifact:
+  build-push-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"
@@ -34,8 +35,16 @@ jobs:
       - name: "Docker auth"
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
-      - name: Build image
+      - name: "Build image"
         run: docker build . --file ./Dockerfile --tag "${{ env.GAR_LOCATION }}/${{ github.sha }}"
 
-      - name: Push image
+      - name: "Push Docker image to Artifact Registry"
         run: docker push "${{ env.GAR_LOCATION }}/${{ github.sha }}"
+
+      - name: "Deploy to Google Cloud Run"
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "${{ env.GAR_LOCATION }}/${{ github.sha }}" \
+            --region ${{ env.REGION }} \
+            --min-instances 0 \
+            --allow-unauthenticated

@@ -1,4 +1,4 @@
-name: Build, Push to Artifact Registry, and Deploy to Cloud Run
+name: Build, Push, and Deploy
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
 
       - name: "Deploy to Google Cloud Run"
         run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
+          gcloud run deploy ${{ env.CR_SERVICE_NAME }} \
             --image "${{ env.GAR_LOCATION }}/${{ github.sha }}" \
             --region ${{ env.REGION }} \
             --min-instances 0 \

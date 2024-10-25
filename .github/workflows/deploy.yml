@@ -48,3 +48,4 @@ jobs:
             --region ${{ env.REGION }} \
             --min-instances 0 \
             --allow-unauthenticated
+

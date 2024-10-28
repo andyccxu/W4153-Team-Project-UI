@@ -8,7 +8,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
 
     // from AuthProvider
-    const { setToken } = useAuth();
+    const { setUser, setToken } = useAuth();
 
     // navigate hook
     const navigate = useNavigate();
@@ -30,7 +30,8 @@ const LoginPage = () => {
         if (response.ok) {
             const data = await response.json();
             setToken(data.token);
-            navigate('/');   // todo: update this page
+            setUser(data.user);
+            navigate('/');
         } else {
             console.log(response);
         }

@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import LoginPage from '../components/login-page.jsx';
 import SignupPage from '../components/signup-page.jsx';
 import ChatPage from '../components/chat-page.jsx';
+import UserHeader from '../components/user-header.jsx';
 
 
 const Routes = () => {
@@ -12,10 +13,6 @@ const Routes = () => {
 
     // Define public routes accessible to all users
     const routesForPublic = [
-        {
-            path: "/service",
-            element: <div>Service Page</div>,
-        },
         {
             path: "/about-us",
             element: <div>About Us</div>,
@@ -26,30 +23,27 @@ const Routes = () => {
     const routesForAuthenticatedOnly = [
         {
             path: "/",
-            element: <ProtectedRoute />, // Wrap the component in ProtectedRoute
+            element: (
+                <>
+                    <UserHeader />
+                    <ProtectedRoute />
+                </>
+            ),
             children: [
                 {
                     path: "/chat",
                     element: <ChatPage />,
                 },
-                {
-                    path: "/profile",
-                    element: <div>User Profile</div>,
-                },
-                {
-                    path: "/logout",
-                    element: <div>Logout</div>,
-                },
+                // {
+                //     path: "/main-feed",
+                //     element: <ChatPage />,
+                // }
             ],
         },
     ];
 
     // Define routes accessible only to non-authenticated users
     const routesForNotAuthenticatedOnly = [
-        {
-            path: "/",
-            element: <div>Home Page</div>,
-        },
         {
             path: "/login",
             element: <LoginPage />,

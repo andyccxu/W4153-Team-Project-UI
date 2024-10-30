@@ -6,6 +6,7 @@ import LoginPage from '../components/login-page.jsx';
 import SignupPage from '../components/signup-page.jsx';
 import ChatPage from '../components/chat-page.jsx';
 import UserHeader from '../components/user-header.jsx';
+import MainFeedPage from "../components/main-feed-page.jsx";
 
 
 const Routes = () => {
@@ -34,6 +35,10 @@ const Routes = () => {
                     path: "/chat",
                     element: <ChatPage />,
                 },
+                {
+                    path: "/main-feed",
+                    element: <MainFeedPage />,
+                }
                 // {
                 //     path: "/main-feed",
                 //     element: <ChatPage />,

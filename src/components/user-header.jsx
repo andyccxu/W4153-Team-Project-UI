@@ -23,6 +23,9 @@ const UserHeader = () => {
                         {/*    <Link className="nav-link" to="/main-feed">Main Feed</Link>*/}
                         {/*</li>*/}
                         <li className="nav-item">
+                            <Link className="nav-link" to="/main-feed">Main Feed</Link>
+                        </li>
+                        <li className="nav-item">
                             <Link className="nav-link" to="/chat">Chat</Link>
                         </li>
                         {/* Add more links as needed */}

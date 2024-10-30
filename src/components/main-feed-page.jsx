@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import PropTypes from "prop-types";
 
 
 const MainFeed = ({ posts }) => {
@@ -72,5 +73,35 @@ const MainFeedPage = () => {
         </div>
     );
 };
+
+// Define the expected prop types
+MainFeed.propTypes = {
+    posts: PropTypes.shape({
+        items: PropTypes.arrayOf(
+            PropTypes.shape({
+                pid: PropTypes.number.isRequired,
+                title: PropTypes.string.isRequired,
+                content: PropTypes.string.isRequired,
+                comments: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        id: PropTypes.number.isRequired,
+                        post_id: PropTypes.number.isRequired,
+                        content: PropTypes.string.isRequired,
+                        writer_uni: PropTypes.string.isRequired,
+                        likes: PropTypes.number.isRequired,
+                        replies: PropTypes.arrayOf(
+                            PropTypes.shape({
+                                id: PropTypes.number.isRequired,
+                                content: PropTypes.string.isRequired,
+                                writer_uni: PropTypes.string.isRequired,
+                                likes: PropTypes.number.isRequired,
+                            })
+                        ).isRequired,
+                    })
+                ).isRequired,
+            })
+        ).isRequired,
+    }).isRequired,
+}
 
 export default MainFeedPage;

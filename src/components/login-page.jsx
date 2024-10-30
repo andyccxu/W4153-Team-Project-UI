@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {useAuth} from "../provider/authProvider.jsx";
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    // from AuthProvider
+    const { setUser, setToken } = useAuth();
 
     // navigate hook
     const navigate = useNavigate();
@@ -12,7 +16,7 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         // send http request to microservice
-        const response = await fetch(`http://44.210.131.186:3000/auth/login`, {
+        const response = await fetch(`http://184.72.105.29:3000/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -24,7 +28,10 @@ const LoginPage = () => {
         });
 
         if (response.ok) {
-            navigate('/chat');   // todo: update this page
+            const data = await response.json();
+            setToken(data.token);
+            setUser(data.user);
+            navigate('/');
         } else {
             console.log(response);
         }

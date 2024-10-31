@@ -47,7 +47,7 @@ jobs:
             --image "${{ env.GAR_LOCATION }}/${{ github.sha }}" \
             --region ${{ env.REGION }} \
             --min-instances 0 \
-            --allow-unauthenticated
-            --set-env-vars VITE_AUTH_SERVICE_BASE_URL=${{ secrets.AUTH_SERVICE_BASE_URL }},\
-                           VITE_CHAT_SERVICE_BASE_URL=${{ secrets.CHAT_SERVICE_BASE_URL }},\
-                           VITE_MAINFEED_SERVICE_BASE_URL=${{ secrets.MAINFEED_SERVICE_BASE_URL }}
+            --allow-unauthenticated \
+            --set-env-vars "VITE_AUTH_SERVICE_BASE_URL=${{ secrets.AUTH_SERVICE_BASE_URL }}" \
+            --set-env-vars "VITE_CHAT_SERVICE_BASE_URL=${{ secrets.CHAT_SERVICE_BASE_URL }}" \
+            --set-env-vars "VITE_MAINFEED_SERVICE_BASE_URL=${{ secrets.MAINFEED_SERVICE_BASE_URL }}"

@@ -43,7 +43,7 @@ const ChatPage = () => {
                 setFriendsList(updatedChats);
 
                 try {
-                    const response = await fetch('http://44.215.29.97:8000/chat-history', {
+                    const response = await fetch(`${ import.meta.env.VITE_CHAT_SERVICE_BASE_URL }/chat-history`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const ChatPage = () => {
                 setGroupsList(updatedGroups);
 
                 try {
-                    const response = await fetch('http://44.215.29.97:8000/chat-history', {
+                    const response = await fetch('${ import.meta.env.VITE_CHAT_SERVICE_BASE_URL }/chat-history', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

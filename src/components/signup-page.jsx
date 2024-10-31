@@ -11,7 +11,7 @@ const SignupPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         // send http request to microservice
-        const response = await fetch(`http://44.210.131.186:3000/auth/signup`, {
+        const response = await fetch(`${ import.meta.env.VITE_AUTH_SERVICE_BASE_URL }/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

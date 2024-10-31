@@ -56,7 +56,7 @@ const MainFeedPage = () => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const response = await fetch('https://main-feed-service-nr6j26ghda-uk.a.run.app/main_feed');
+                const response = await fetch(`${ import.meta.env.VITE_MAINFEED_SERVICE_BASE_URL}/main_feed`);
                 const data = await response.json();
                 setPosts(data);
             } catch (error) {

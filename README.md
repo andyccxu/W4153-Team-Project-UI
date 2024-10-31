@@ -20,4 +20,8 @@ A CD pipeline is established using GitHub Actions.
 We use Docker + Google Cloud Run to deploy this application.
 
 The deployed UI app can be found 
-[here](https://ui-app-745799261495.us-east4.run.app).
+[here](https://ui-2-image-745799261495.us-east4.run.app).
+
+The deployment made from our CD pipeline can be found
+[here](https://ui-app-745799261495.us-east4.run.app). Currently, there is some issues with 
+loading env variables in the production environment.

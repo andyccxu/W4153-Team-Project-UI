@@ -15,6 +15,7 @@ const LoginPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(`auth service url: ${ import.meta.env.VITE_AUTH_SERVICE_BASE_URL }`);
         // send http request to microservice
         const response = await fetch(`${ import.meta.env.VITE_AUTH_SERVICE_BASE_URL }/auth/login`, {
             method: 'POST',

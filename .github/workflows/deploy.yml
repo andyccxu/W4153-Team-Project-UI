@@ -30,10 +30,13 @@ jobs:
         uses: "google-github-actions/setup-gcloud@v2"
 
       - name: "Use gcloud CLI"
-        run: "gcloud info"
+        run: gcloud info
 
       - name: "Docker auth"
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: "Prepare Environment"
+        run: echo "${{ secrets.DOTENV }}" >> .env
 
       - name: "Build image"
         run: docker build . --file ./Dockerfile --tag "${{ env.GAR_LOCATION }}/${{ github.sha }}"
@@ -47,7 +50,7 @@ jobs:
             --image "${{ env.GAR_LOCATION }}/${{ github.sha }}" \
             --region ${{ env.REGION }} \
             --min-instances 0 \
-            --allow-unauthenticated \
-            --set-env-vars "VITE_AUTH_SERVICE_BASE_URL=${{ secrets.AUTH_SERVICE_BASE_URL }}" \
-            --set-env-vars "VITE_CHAT_SERVICE_BASE_URL=${{ secrets.CHAT_SERVICE_BASE_URL }}" \
-            --set-env-vars "VITE_MAINFEED_SERVICE_BASE_URL=${{ secrets.MAINFEED_SERVICE_BASE_URL }}"
+            --allow-unauthenticated
+
+      - name: "Clean Up"
+        run: rm .env

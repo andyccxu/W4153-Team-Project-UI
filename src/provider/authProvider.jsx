@@ -3,6 +3,7 @@
 
 import axios from "axios";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { googleLogout } from '@react-oauth/google';
 
 // init an empty context object to share authentication state between components
 const AuthContext = createContext(null);
@@ -25,6 +26,7 @@ const AuthProvider = ({ children }) => {
 
     // Function to handle user logout
     const logout = () => {
+        googleLogout();    // Log out from Google
         setToken(null);
         setUser(null);
         delete axios.defaults.headers.common["Authorization"];

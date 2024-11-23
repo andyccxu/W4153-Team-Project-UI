@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {useAuth} from "../provider/authProvider.jsx";
+import GoogleLogin from './google-login.jsx'
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -70,9 +71,15 @@ const LoginPage = () => {
                     <button type="submit" className="btn btn-primary w-100">Login</button>
                 </form>
 
+                <p className="text-center pt-3">OR</p>
+
+                <GoogleLogin/>
+
                 <p className="text-center pt-3">
                     Do not have an account? <Link to="/signup">Sign up now!</Link>
                 </p>
+
+
             </div>
         </div>
     );

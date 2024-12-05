@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {useAuth} from "../provider/authProvider.jsx";
-import GoogleLogin from './google-login.jsx'
+import GoogleLoginComp from './google-login.jsx'
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -42,7 +42,7 @@ const LoginPage = () => {
     return (
         <div className="container d-flex justify-content-center align-items-center vh-100">
             <div className="card p-4" style={{maxWidth: '400px', width: '100%'}}>
-                <h2 className="text-center mb-4">Login to <br/> Columbia Forum</h2>
+                <h2 className="text-center mb-4">Login to <br/> Columbia Online Social Platform</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label">Email</label>
@@ -73,7 +73,7 @@ const LoginPage = () => {
 
                 <p className="text-center pt-3">OR</p>
 
-                <GoogleLogin/>
+                <GoogleLoginComp/>
 
                 <p className="text-center pt-3">
                     Do not have an account? <Link to="/signup">Sign up now!</Link>

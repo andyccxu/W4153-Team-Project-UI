@@ -18,13 +18,21 @@ const MainFeedPage = () => {
     const [posts, setPosts] = useState(null);
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+
         const fetchPosts = async () => {
             try {
                 const response = await fetch(
-                    `${
-                        import.meta.env.VITE_MAINFEED_SERVICE_BASE_URL
-                    }/main_feed`
+                    `${import.meta.env.VITE_GW_BASE_URL}/main_feed`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            Accept: 'application/json'
+                        }
+                    }
                 );
+
                 const data = await response.json();
                 if (!data.items) {
                     throw new Error(data.message || 'Failed to fetch posts');

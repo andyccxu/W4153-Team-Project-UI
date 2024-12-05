@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the UI repo for the Columbia Forum project.
+This is the UI repo for the Columbia Online Social Platform project.
 
 ## Installation
 
@@ -16,8 +16,8 @@ Please run the command `npm run dev` to start the application.
 
 ## Deployment
 
-A CD pipeline is established using GitHub Actions. 
-We use Docker + Google Cloud Run to deploy this application.
+A CI pipeline is established using GitHub Actions. 
+We use Google Cloud Run to deploy this application.
 
 The deployment made by our CI/CD pipeline can be found
 [here](https://ui-app-745799261495.us-east4.run.app).

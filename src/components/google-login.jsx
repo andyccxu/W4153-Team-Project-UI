@@ -1,46 +1,57 @@
 import React, { useEffect } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../provider/authProvider';
 
-function GoogleLogin() {
+function GoogleLoginComp() {
     const navigate = useNavigate();
     const { setUser, setToken } = useAuth(); // from authProvider.js
-    const login = useGoogleLogin({
-        onSuccess: async (codeResponse) => {
-            try {
-                // Fetch the user's profile
-                const res = await axios.get(
-                    `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${codeResponse.access_token}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${codeResponse.access_token}`,
-                            Accept: 'application/json'
-                        }
-                    }
-                );
-
-                // Set the access token in the context
-                setToken(codeResponse.access_token);
-                // Set the user profile in the context
-                res.data.username = res.data.name;
-                setUser(res.data);
-                navigate('/');
-            } catch (error) {
-                console.error('Error fetching Google user info:', error);
-            }
-        },
-        onError: (error) => console.log('Login Failed:', error)
-    });
 
     return (
         <div>
-            <button className="btn btn-secondary w-50" onClick={() => login()}>
-                Sign in with Google 🚀
-            </button>
+            <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                    console.log(credentialResponse);
+
+                    // get id_token from google login
+                    const id_token = credentialResponse.credential;
+                    const client_id = credentialResponse.clientId;
+                    setToken(id_token);
+                    setUser({
+                        email: '',
+                        username: ''
+                    });
+                    navigate('/');
+                    // visit a backend api (with id_token) to fetch user info
+                    try {
+                        const res = await axios.get(
+                            `${import.meta.env.VITE_GW_BASE_URL}/exchange_token_with_google?client_id=${client_id}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${id_token}`,
+                                    google_id_token: id_token,
+                                    client_id: client_id
+                                }
+                            }
+                        );
+
+                        const userinfo = res.data.userinfo;
+                        setUser({
+                            email: userinfo['email'],
+                            username: userinfo['name']
+                        });
+                    } catch (error) {
+                        alert('Token exchange failed');
+                        console.log(error);
+                    }
+                }}
+                onError={() => {
+                    console.log('Login Failed');
+                }}
+            />
         </div>
     );
 }
 
-export default GoogleLogin;
+export default GoogleLoginComp;

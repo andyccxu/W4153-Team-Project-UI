@@ -33,7 +33,7 @@ const SignupPage = () => {
     return (
         <div className="container d-flex justify-content-center align-items-center vh-100">
             <div className="card p-4" style={{ maxWidth: '400px', width: '100%' }}>
-                <h2 className="text-center mb-4">Sign Up for <br/> Columbia Forum</h2>
+                <h2 className="text-center mb-4">Sign Up for <br/> Columbia Online Social Platform</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label htmlFor="username" className="form-label">Username</label>

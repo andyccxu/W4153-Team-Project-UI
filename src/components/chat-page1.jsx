@@ -1,34 +1,71 @@
 import { useState, useEffect } from "react";
 import "./chat-page1.css";
 
-
-const ChatPage = () => {
+const ChatPage = ({ friendsList, setFriendsList }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
     const [websocket, setWebSocket] = useState(null);
     const [currentId, setCurrentId] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
+    const [email, setEmail] = useState("");
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
+    };
+
+    // Start chat button logic
+    const handleStartChat = async () => {
+        if (!email.trim()) {
+            alert("Please enter a valid email!");
+            return;
+        }
+
+        try {
+            // Fetch user by email
+            const response = await fetch(`http://localhost:8000/get-user-by-email?email=${email}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch user data");
+            }
+
+            const user = await response.json();
+            if (user && user.id) {
+                // Check if the user is already in the friends list
+                const isAlreadyFriend = friendsList.some((friend) => friend.id === user.id);
+                if (isAlreadyFriend) {
+                    alert("User is already in your friends list!");
+                } else {
+                    // Add user to friends list
+                    setFriendsList([...friendsList, user]);
+                    alert(`${user.username} has been added to your friends list!`);
+                }
+            } else {
+                // User not found
+                alert("User not found. Please check the email and try again.");
+            }
+        } catch (error) {
+            console.error("Error fetching user by email:", error);
+            alert("An error occurred. Please try again later.");
+        }
+
+        // Clear the input field
+        setEmail("");
+    };
 
     const fetchCurrentUser = async () => {
         try {
-            const response = await fetch("http://localhost:8000/get-user-id"); // Replace with your backend's URL
+            const response = await fetch("http://localhost:8000/current-user");
             if (!response.ok) {
                 throw new Error("Failed to fetch user data");
             }
             const data = await response.json();
-            setCurrentId(data.id);
+            setCurrentId(data.user_id);
             setCurrentUser(data.username);
         } catch (error) {
             console.error("Error fetching user data:", error);
         }
     };
 
-
-    // Fetch the current user's ID and username
-    useEffect(() => {
-        fetchCurrentUser();
-    }, []);
 
 
     const initializeWebSocket = () => {
@@ -59,15 +96,22 @@ const ChatPage = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
 
+    // Fetch the current user's ID and username, initialize websocket connection
+    useEffect(() => {
+        fetchCurrentUser();
+        initializeWebSocket();
+    }, []);
+
     return (
-        <div className="container">
+        <div className="chat-page">
             <div className="sidebar">
                 <input
                     type="text"
                     placeholder="Enter Friend's Email"
+                    onChange={handleEmailChange}
                     className="input-box"
                 />
-                <button className="start-chat-button" id="start-chat">Start Chat</button>
+                <button onClick={handleStartChat} className="start-chat-button" id="start-chat">Start Chat</button>
                 <h3>Friend List</h3>
                 <div className="dropdown">
                     <div className="dropdown-header" onClick={toggleDropdown}>
@@ -76,9 +120,9 @@ const ChatPage = () => {
                     </div>
                     {isDropdownOpen && (
                         <ul className="dropdown-list">
-                            <li>David Xu</li>
-                            <li>Charlotte</li>
-                            <li>Tom</li>
+                            {friendsList.map((friend) => (
+                                <li key={friend.id}>{friend.username}</li>
+                            ))}
                         </ul>
                     )}
                 </div>

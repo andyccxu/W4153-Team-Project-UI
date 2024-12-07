@@ -1,0 +1,135 @@
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 25%;
+    background-color: #D3DBEC;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border-right: 2px solid #ccc;
+}
+
+.input-box {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    background-color: #fff;
+}
+
+.start-chat-button {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #6B9DBC;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.start-chat-button:hover {
+    background-color: #303f9f;
+}
+
+h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.dropdown-header {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.dropdown-list {
+    margin: 5px 0 0 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+    height: 150px;
+    overflow-y: auto;
+}
+
+.dropdown-list li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-list li:hover {
+    background-color: #f0f0f0;
+}
+
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.chat-header {
+    padding: 20px;
+    background-color: #D3DBEC;
+    font-size: 1.2rem;
+    border-bottom: 2px solid #ccc;
+}
+
+.chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.chat-input {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-top: 2px solid #ccc;
+    background-color: #D3DBEC;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
+
+.send-button {
+    padding: 10px 20px;
+    background-color: #6B9DBC;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.send-button:hover {
+    background-color: #303f9f;
+}

@@ -10,6 +10,8 @@ const ChatPage = () => {
     const [recipient, setRecipient] = useState(null);
     const [chatMessages, setChatMessages] = useState([]);
     const [friendsList, setFriendsList] = useState([]);
+    const [currentId, setCurrentId] = useState(null); // State for current user ID
+    const [currentUsername, setCurrentUsername] = useState(null); // State for current username
     // const currentId = 12;
     // const currentUser = "yw_test";
 
@@ -24,11 +26,11 @@ const ChatPage = () => {
 
         try {
             const currentUser = JSON.parse(storedUser); // Parse the JSON string
-            const currentId = currentUser.id; // Extract user ID
-            const currentUsername = currentUser.username; // Extract username
+            setCurrentId(currentUser.id); // Store user ID in state
+            setCurrentUsername(currentUser.username); // Store username in state
 
-            console.log("Current user:", currentUsername);
-            console.log("Current user ID:", currentId);
+            console.log("Current user:", currentUser.username);
+            console.log("Current user ID:", currentUser.id);
         } catch (error) {
             console.error("Failed to parse user from local storage:", error);
             alert("Invalid user data. Please log in again.");

@@ -11,7 +11,6 @@ const ChatPage = () => {
     const [chatMessages, setChatMessages] = useState([]);
     const [friendsList, setFriendsList] = useState([]);
     // const currentId = 12;
-    // const currentUser = "yw_test";
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user"); // Fetch the 'user' key from local storage

@@ -12,6 +12,7 @@ const ChatPage = () => {
     const [friendsList, setFriendsList] = useState([]);
     const [currentId, setCurrentId] = useState(null); // State for current user ID
     const [currentUsername, setCurrentUsername] = useState(null); // State for current username
+    const [loading, setLoading] = useState(true);
     // const currentId = 12;
     // const currentUser = "yw_test";
 
@@ -31,6 +32,7 @@ const ChatPage = () => {
 
             console.log("Current user:", currentUser.username);
             console.log("Current user ID:", currentUser.id);
+            setLoading(false);
         } catch (error) {
             console.error("Failed to parse user from local storage:", error);
             alert("Invalid user data. Please log in again.");
@@ -42,7 +44,7 @@ const ChatPage = () => {
     useEffect(() => {
         const fetchFriends = async () => {
             try {
-                const response = await fetch(`http://44.215.29.97:8000/friend-list/${currentId}`);
+                const response = await fetch(`https://44.215.29.97:8000/friend-list/${currentId}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch friend list");
                 }
@@ -58,7 +60,7 @@ const ChatPage = () => {
                 console.log("Fetched friend list:", friends);
             } catch (error) {
                 console.error("Error fetching friend list:", error);
-                alert("Failed to load friend list. Please try again later.");
+                //alert("Failed to load friend list. Please try again later.");
             }
         };
 
@@ -131,7 +133,7 @@ const ChatPage = () => {
 
         try {
             // Fetch recipient details
-            const userResponse = await fetch(`http://44.215.29.97:8000/get-user-email?email=${encodeURIComponent(email)}`);
+            const userResponse = await fetch(`https://44.215.29.97:8000/get-user-email?email=${encodeURIComponent(email)}`);
             if (!userResponse.ok) {
                 if (userResponse.status === 404) {
                     alert("User not found. Please check the email and try again.");
@@ -161,7 +163,7 @@ const ChatPage = () => {
 
 
             // Fetch chat history
-            const chatResponse = await fetch(`http://44.215.29.97:8000/chat-history/${currentId}/${user.id}`);
+            const chatResponse = await fetch(`https://44.215.29.97:8000/chat-history/${currentId}/${user.id}`);
             if (!chatResponse.ok) {
                 throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);
             }
@@ -192,7 +194,7 @@ const ChatPage = () => {
 
             // Fetch chat history for the selected friend
             const chatResponse = await fetch(
-                `http://44.215.29.97:8000/chat-history/${currentId}/${friend.id}`
+                `https://44.215.29.97:8000/chat-history/${currentId}/${friend.id}`
             );
             if (!chatResponse.ok) {
                 throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);
@@ -218,6 +220,11 @@ const ChatPage = () => {
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
+
+    if (loading) {
+        // Show a loading spinner or placeholder until user data is ready
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="chat-page">

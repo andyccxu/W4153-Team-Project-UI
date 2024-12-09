@@ -30,7 +30,6 @@ const NewPostForm = () => {
         formData.append('content', content);
         if (image) {
             formData.append('image', image);
-            console.log('image' + image);
         }
 
         try {
@@ -109,13 +108,15 @@ const NewPostForm = () => {
 
 const MainFeedPage = () => {
     const [posts, setPosts] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
-    const fetchPosts = async () => {
+    const fetchPosts = async (page = 1) => {
         const token = localStorage.getItem('token');
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_GW_BASE_URL}/main_feed`,
+                `${import.meta.env.VITE_GW_BASE_URL}/main_feed?page=${page}`,
                 {
                     method: 'GET',
                     headers: {
@@ -131,7 +132,10 @@ const MainFeedPage = () => {
             if (!data.items) {
                 throw new Error(data.message || 'Failed to fetch posts');
             }
+
             setPosts(data);
+            setCurrentPage(data.page);
+            setTotalPages(data.pages);
         } catch (error) {
             console.error('Error fetching posts:', error);
             alert('Error fetching posts. Please try again later.');
@@ -139,13 +143,50 @@ const MainFeedPage = () => {
     };
 
     useEffect(() => {
-        fetchPosts();
-    }, []);
+        fetchPosts(currentPage);
+    }, [currentPage]);
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
 
     return (
         <div className="container">
             <NewPostForm />
-            {posts ? <MainFeed posts={posts} /> : <p>Loading...</p>}
+            {posts ? (
+                <div>
+                    <MainFeed posts={posts} />
+                    <div className="pagination">
+                        <button
+                            className="btn btn-light"
+                            onClick={handlePrevPage}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </button>
+                        <span className="page-number px-3">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            className="btn btn-light"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <p>Loading...</p>
+            )}
         </div>
     );
 };

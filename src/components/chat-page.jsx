@@ -44,7 +44,7 @@ const ChatPage = () => {
     useEffect(() => {
         const fetchFriends = async () => {
             try {
-                const response = await fetch(`https://44.215.29.97:8000/friend-list/${currentId}`);
+                const response = await fetch(`http://44.215.29.97:8000/friend-list/${currentId}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch friend list");
                 }
@@ -133,7 +133,7 @@ const ChatPage = () => {
 
         try {
             // Fetch recipient details
-            const userResponse = await fetch(`https://44.215.29.97:8000/get-user-email?email=${encodeURIComponent(email)}`);
+            const userResponse = await fetch(`http://44.215.29.97:8000/get-user-email?email=${encodeURIComponent(email)}`);
             if (!userResponse.ok) {
                 if (userResponse.status === 404) {
                     alert("User not found. Please check the email and try again.");
@@ -163,7 +163,7 @@ const ChatPage = () => {
 
 
             // Fetch chat history
-            const chatResponse = await fetch(`https://44.215.29.97:8000/chat-history/${currentId}/${user.id}`);
+            const chatResponse = await fetch(`http://44.215.29.97:8000/chat-history/${currentId}/${user.id}`);
             if (!chatResponse.ok) {
                 throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);
             }
@@ -194,7 +194,7 @@ const ChatPage = () => {
 
             // Fetch chat history for the selected friend
             const chatResponse = await fetch(
-                `https://44.215.29.97:8000/chat-history/${currentId}/${friend.id}`
+                `http://44.215.29.97:8000/chat-history/${currentId}/${friend.id}`
             );
             if (!chatResponse.ok) {
                 throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);

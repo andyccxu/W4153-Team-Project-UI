@@ -1,30 +1,57 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import {useAuth} from "../provider/authProvider.jsx";
+import GoogleLoginComp from './google-login.jsx'
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = (e) => {
+    // from AuthProvider
+    const { setUser, setToken } = useAuth();
+
+    // navigate hook
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // todo: add login logic here
-        console.log('Logging in with:', { username, password });
+        console.log(`auth service url: ${ import.meta.env.VITE_AUTH_SERVICE_BASE_URL }`);
+        // send http request to microservice
+        const response = await fetch(`${ import.meta.env.VITE_AUTH_SERVICE_BASE_URL }/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            setToken(data.token);
+            setUser(data.user);
+            navigate('/');
+        } else {
+            console.log(response);
+        }
     };
 
     return (
         <div className="container d-flex justify-content-center align-items-center vh-100">
             <div className="card p-4" style={{maxWidth: '400px', width: '100%'}}>
-                <h2 className="text-center mb-4">Login to <br/> Columbia Forum</h2>
+                <h2 className="text-center mb-4">Login to <br/> Columbia Online Social Platform</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                        <label htmlFor="username" className="form-label">Username</label>
+                        <label htmlFor="email" className="form-label">Email</label>
                         <input
-                            type="username"
-                            id="username"
+                            type="email"
+                            id="email"
                             className="form-control"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                             placeholder="example@columbia.edu"
                         />
@@ -44,9 +71,15 @@ const LoginPage = () => {
                     <button type="submit" className="btn btn-primary w-100">Login</button>
                 </form>
 
+                <p className="text-center pt-3">OR</p>
+
+                <GoogleLoginComp/>
+
                 <p className="text-center pt-3">
                     Do not have an account? <Link to="/signup">Sign up now!</Link>
                 </p>
+
+
             </div>
         </div>
     );

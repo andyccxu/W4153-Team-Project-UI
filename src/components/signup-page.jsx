@@ -8,20 +8,32 @@ const SignupPage = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // todo: add signup logic here
-        if (password !== confirmPassword) {
-            alert("Passwords don't match!");
+        // send http request to microservice
+        const response = await fetch(`${ import.meta.env.VITE_AUTH_SERVICE_BASE_URL }/auth/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                username: username,
+                password: password,
+            })
+        });
+
+        if (response.ok) {
+            alert("Successfully signed up");
         } else {
-            console.log('Signing up with:', { username, email, password });
+            console.log(response);
         }
     };
 
     return (
         <div className="container d-flex justify-content-center align-items-center vh-100">
             <div className="card p-4" style={{ maxWidth: '400px', width: '100%' }}>
-                <h2 className="text-center mb-4">Sign Up for <br/> Columbia Forum</h2>
+                <h2 className="text-center mb-4">Sign Up for <br/> Columbia Online Social Platform</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
                         <label htmlFor="username" className="form-label">Username</label>

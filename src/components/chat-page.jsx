@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import "./chat-page1.css";
+import "./chat-page.css";
 import PropTypes from "prop-types";
 
 const ChatPage = () => {
@@ -10,8 +10,31 @@ const ChatPage = () => {
     const [recipient, setRecipient] = useState(null);
     const [chatMessages, setChatMessages] = useState([]);
     const [friendsList, setFriendsList] = useState([]);
-    const currentId = 12;
-    const currentUser = "andy";
+    // const currentId = 12;
+    // const currentUser = "yw_test";
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user"); // Fetch the 'user' key from local storage
+
+        if (!storedUser) {
+            alert("Please log in to continue.");
+            window.location.href = "/login"; // Redirect to login if no user is found
+            return;
+        }
+
+        try {
+            const currentUser = JSON.parse(storedUser); // Parse the JSON string
+            const currentId = currentUser.id; // Extract user ID
+            const currentUsername = currentUser.username; // Extract username
+
+            console.log("Current user:", currentUsername);
+            console.log("Current user ID:", currentId);
+        } catch (error) {
+            console.error("Failed to parse user from local storage:", error);
+            alert("Invalid user data. Please log in again.");
+            window.location.href = "/login"; // Redirect to login if parsing fails
+        }
+    }, []);
 
     // Fetch friends list on component mount
     useEffect(() => {

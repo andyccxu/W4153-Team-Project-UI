@@ -28,7 +28,8 @@ const MainFeedPage = () => {
                         method: 'GET',
                         headers: {
                             Authorization: `Bearer ${token}`,
-                            Accept: 'application/json'
+                            Accept: 'application/json', 
+                            'X-Security-Token': localStorage.getItem('security_token'),
                         }
                     }
                 );
@@ -40,6 +41,7 @@ const MainFeedPage = () => {
                 setPosts(data);
             } catch (error) {
                 console.error('Error fetching posts:', error);
+                alert('Error fetching posts. Please try again later.');
             }
         };
 

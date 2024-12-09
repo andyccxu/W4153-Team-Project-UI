@@ -5,7 +5,7 @@ import PostCard from './post-card';
 
 const MainFeed = ({ posts }) => {
     return (
-        <div className="container my-4 pt-5">
+        <div className="container my-4 pt-3">
             <h1 className="mb-4">User Posts</h1>
             {posts.items.map((post) => (
                 <PostCard key={post.pid} post={post} />
@@ -14,41 +14,140 @@ const MainFeed = ({ posts }) => {
     );
 };
 
+const NewPostForm = () => {
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [image, setImage] = useState(null);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+        const securityToken = localStorage.getItem('security_token');
+
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('content', content);
+        if (image) {
+            formData.append('image', image);
+            console.log('image' + image);
+        }
+
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_GW_BASE_URL}/user_post`,
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'X-Security-Token': securityToken
+                    },
+                    body: formData
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to create post');
+            }
+
+            alert('Post created successfully!');
+        } catch (error) {
+            console.error('Error creating post:', error);
+            alert('Error creating post. Please try again.');
+        }
+    };
+
+    return (
+        <form
+            onSubmit={handleSubmit}
+            className="new-post-form mt-5 bg-success bg-opacity-10 rounded"
+        >
+            <div className="mb-3 px-3" style={{ paddingTop: '20px' }}>
+                <label htmlFor="title" className="form-label">
+                    Title
+                </label>
+                <input
+                    type="text"
+                    id="title"
+                    className="form-control"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                />
+            </div>
+            <div className="mb-3 px-3">
+                <label htmlFor="content" className="form-label">
+                    Content
+                </label>
+                <textarea
+                    id="content"
+                    className="form-control"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                ></textarea>
+            </div>
+            <div className="mb-3 px-3">
+                <label htmlFor="image" className="form-label">
+                    Image (optional)
+                </label>
+                <input
+                    type="file"
+                    id="image"
+                    className="form-control"
+                    accept="image/png, image/jpeg"
+                    onChange={(e) => setImage(e.target.files[0])}
+                />
+            </div>
+            <button type="submit" className="btn btn-primary ms-3 mb-3">
+                Publish New Post
+            </button>
+        </form>
+    );
+};
+
 const MainFeedPage = () => {
     const [posts, setPosts] = useState(null);
 
-    useEffect(() => {
+    const fetchPosts = async () => {
         const token = localStorage.getItem('token');
 
-        const fetchPosts = async () => {
-            try {
-                const response = await fetch(
-                    `${import.meta.env.VITE_GW_BASE_URL}/main_feed`,
-                    {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            Accept: 'application/json', 
-                            'X-Security-Token': localStorage.getItem('security_token'),
-                        }
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_GW_BASE_URL}/main_feed`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: 'application/json',
+                        'X-Security-Token':
+                            localStorage.getItem('security_token')
                     }
-                );
-
-                const data = await response.json();
-                if (!data.items) {
-                    throw new Error(data.message || 'Failed to fetch posts');
                 }
-                setPosts(data);
-            } catch (error) {
-                console.error('Error fetching posts:', error);
-                alert('Error fetching posts. Please try again later.');
-            }
-        };
+            );
 
+            const data = await response.json();
+            if (!data.items) {
+                throw new Error(data.message || 'Failed to fetch posts');
+            }
+            setPosts(data);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+            alert('Error fetching posts. Please try again later.');
+        }
+    };
+
+    useEffect(() => {
         fetchPosts();
     }, []);
 
-    return <div>{posts ? <MainFeed posts={posts} /> : <p>Loading...</p>}</div>;
+    return (
+        <div className="container">
+            <NewPostForm />
+            {posts ? <MainFeed posts={posts} /> : <p>Loading...</p>}
+        </div>
+    );
 };
 
 // Define the expected prop types

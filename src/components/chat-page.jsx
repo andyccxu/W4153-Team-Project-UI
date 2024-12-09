@@ -70,7 +70,7 @@ const ChatPage = () => {
 
     // Establish WebSocket connection
     useEffect(() => {
-        const ws = new WebSocket(`ws://44.215.29.97:8000/ws/${currentId}`);
+        const ws = new WebSocket(`wss://44.215.29.97:8000/ws/${currentId}`);
         websocketRef.current = ws;
 
         ws.onopen = () => {

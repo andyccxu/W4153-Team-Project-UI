@@ -1,10 +1,11 @@
-// PostCard.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 const PostCard = ({ post }) => {
     const [commentsVisible, setCommentsVisible] = useState(false);
     const [newComment, setNewComment] = useState('');
+
+    const [imageUrl, setImageUrl] = useState(null);
 
     const handleCommentChange = (e) => setNewComment(e.target.value);
 
@@ -20,11 +21,59 @@ const PostCard = ({ post }) => {
         setCommentsVisible(!commentsVisible);
     };
 
+    // Fetch the image URL when the component mounts
+    useEffect(() => {
+        const fetchImage = async () => {
+            try {
+                const response = await fetch(
+                    `${
+                        import.meta.env.VITE_FILE_MAN_URL
+                    }/get_image?object_name=${post.image_object_name}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'X-Security-Token':
+                                localStorage.getItem('security_token')
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const imageObjectUrl = URL.createObjectURL(blob);
+                    setImageUrl(imageObjectUrl);
+                } else {
+                    console.error(
+                        'Failed to fetch image:',
+                        response.statusText
+                    );
+                }
+            } catch (error) {
+                console.error('Error fetching image:', error);
+            }
+        };
+
+        if (post.image_object_name) {
+            fetchImage();
+        }
+    }, [post.image_object_name]);
+
     return (
         <div className="card mb-4">
             <div className="card-body">
                 <h2 className="card-title">{post.title}</h2>
                 <p className="card-text">{post.content}</p>
+
+                {/* Render the image if available */}
+                {imageUrl && (
+                    <div className="mb-3">
+                        <img
+                            src={imageUrl}
+                            alt="Post"
+                            className="img-fluid rounded"
+                        />
+                    </div>
+                )}
 
                 {/* Toggle Comments Button */}
                 <button
@@ -120,6 +169,7 @@ PostCard.propTypes = {
         pid: PropTypes.number.isRequired,
         title: PropTypes.string.isRequired,
         content: PropTypes.string.isRequired,
+        image_object_name: PropTypes.string, // Optional image object name
         comments: PropTypes.arrayOf(
             PropTypes.shape({
                 id: PropTypes.number.isRequired,

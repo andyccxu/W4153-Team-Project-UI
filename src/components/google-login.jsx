@@ -41,6 +41,9 @@ function GoogleLoginComp() {
                             email: userinfo['email'],
                             username: userinfo['name']
                         });
+
+                        const security_token = res.data.token;
+                        localStorage.setItem('security_token', security_token);
                     } catch (error) {
                         alert('Token exchange failed');
                         console.log(error);

@@ -1,291 +1,208 @@
-import { useState, useEffect, useRef } from "react";
-import "./chat-page.css";
-import PropTypes from "prop-types";
+import { useState } from 'react';
+import './chat-page.css';
+
+const initialFriendsList = [
+    { id: 1, name: 'Alice', messages: [] },
+];
+
+const initialGroups = [
+    { id: 1, name: 'Group 1', members: [1, 2], messages: [{ sender: 'Alice', content: 'Welcome to Group 1!' }] },
+    { id: 2, name: 'Group 2', members: [3, 4], messages: [{ sender: 'Charlie', content: 'Welcome to Group 2!' }] }
+];
+
+const currentUser = 'You';
 
 const ChatPage = () => {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [message, setMessage] = useState(""); // Current message input
-    const websocketRef = useRef(null); // WebSocket reference
-    const [email, setEmail] = useState("");
-    const [recipient, setRecipient] = useState(null);
-    const [chatMessages, setChatMessages] = useState([]);
-    const [friendsList, setFriendsList] = useState([]);
-    // const currentId = 12;
-    // const currentUser = "yw_test";
+    const [friendsList, setFriendsList] = useState(initialFriendsList);
+    const [groupsList, setGroupsList] = useState(initialGroups);
+    const [selectedChat, setSelectedChat] = useState({ type: 'private', id: 1 });
+    const [newMessage, setNewMessage] = useState('');
+    const [newFriendName, setNewFriendName] = useState('');
+    const [newGroupName, setNewGroupName] = useState('');
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem("user"); // Fetch the 'user' key from local storage
 
-        if (!storedUser) {
-            alert("Please log in to continue.");
-            window.location.href = "/login"; // Redirect to login if no user is found
-            return;
-        }
+    const handleChatClick = (type, id) => {
+        setSelectedChat({ type, id });
+    };
 
-        try {
-            const currentUser = JSON.parse(storedUser); // Parse the JSON string
-            const currentId = currentUser.id; // Extract user ID
-            const currentUsername = currentUser.username; // Extract username
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        if (newMessage.trim() !== '') {
+            let updatedChats = [];
 
-            console.log("Current user:", currentUsername);
-            console.log("Current user ID:", currentId);
-        } catch (error) {
-            console.error("Failed to parse user from local storage:", error);
-            alert("Invalid user data. Please log in again.");
-            window.location.href = "/login"; // Redirect to login if parsing fails
-        }
-    }, []);
+            if (selectedChat.type === 'private') {
+                updatedChats = friendsList.map((friend) => {
+                    if (friend.id === selectedChat.id) {
+                        return {
+                            ...friend,
+                            messages: [...friend.messages, { sender: currentUser, content: newMessage }]
+                        };
+                    }
+                    return friend;
+                });
+                setFriendsList(updatedChats);
 
-    // Fetch friends list on component mount
-    useEffect(() => {
-        const fetchFriends = async () => {
-            try {
-                const response = await fetch(`http://44.215.29.97:8000/friend-list/${currentId}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch friend list");
+                try {
+                    const response = await fetch(`${ import.meta.env.VITE_CHAT_SERVICE_BASE_URL }/chat-history`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            sender: currentUser,
+                            recipient: updatedChats.find(friend => friend.id === selectedChat.id).name,
+                            message: newMessage,
+                        }),
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to send message');
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
                 }
+            } else if (selectedChat.type === 'group') {
+                const updatedGroups = groupsList.map((group) => {
+                    if (group.id === selectedChat.id) {
+                        return {
+                            ...group,
+                            messages: [...group.messages, { sender: currentUser, content: newMessage }]
+                        };
+                    }
+                    return group;
+                });
+                setGroupsList(updatedGroups);
 
-                const { friends } = await response.json();
-                // Normalize friend list structure
-                const normalizedFriends = friends.map((friend) => ({
-                    id: friend.friend_id, // Map friend_id to id
-                    username: friend.username,
-                    email: friend.email,
-                }));
-                setFriendsList(normalizedFriends); // Initialize the friend list
-                console.log("Fetched friend list:", friends);
-            } catch (error) {
-                console.error("Error fetching friend list:", error);
-                alert("Failed to load friend list. Please try again later.");
-            }
-        };
-
-        fetchFriends();
-    }, [currentId]);
-
-
-    // Establish WebSocket connection
-    useEffect(() => {
-        const ws = new WebSocket(`ws://44.215.29.97:8000/ws/${currentId}`);
-        websocketRef.current = ws;
-
-        ws.onopen = () => {
-            console.log("WebSocket connection established");
-        };
-
-        ws.onmessage = (event) => {
-            const receivedMessage = event.data;
-            setChatMessages((prevMessages) => [...prevMessages, receivedMessage]);
-        };
-
-        ws.onclose = () => {
-            console.log("WebSocket connection closed");
-        };
-
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
-        };
-
-        return () => {
-            ws.close(); // Cleanup WebSocket on component unmount
-        };
-    }, [currentId]);
-
-
-    // Handle sending a message
-    const handleSend = () => {
-        if (!recipient) {
-            alert("Please select a recipient to send a message.");
-            return;
-        }
-        if (!message.trim()) {
-            alert("Message cannot be empty.");
-            return;
-        }
-
-        // Format the message to send via WebSocket
-        const formattedMessage = `${recipient.id}:${message}`; // Format as "recipient_id:message"
-        websocketRef.current.send(formattedMessage); // Send message over WebSocket
-
-        // Add the message to the chat box immediately in the same format as chat history
-        setChatMessages((prevMessages) => [
-            ...prevMessages,
-            { sender: "You", content: message }, // Ensure consistent formatting
-        ]);
-
-        setMessage(""); // Clear the input field
-    };
-
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
-    };
-
-
-    const handleStartChat = async () => {
-        if (!email.trim()) {
-            alert("Please enter a valid email!");
-            return;
-        }
-
-        try {
-            // Fetch recipient details
-            const userResponse = await fetch(`http://44.215.29.97:8000/get-user-email?email=${encodeURIComponent(email)}`);
-            if (!userResponse.ok) {
-                if (userResponse.status === 404) {
-                    alert("User not found. Please check the email and try again.");
-                    return;
+                try {
+                    const response = await fetch('${ import.meta.env.VITE_CHAT_SERVICE_BASE_URL }/chat-history', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            sender: currentUser,
+                            group: updatedGroups.find(group => group.id === selectedChat.id).name,
+                            message: newMessage,
+                        }),
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to send message');
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
                 }
-                throw new Error(`Failed to fetch user data. Status: ${userResponse.status}`);
             }
 
-            const { user } = await userResponse.json();
-            console.log("Fetched user:", user);
-
-            // Add user to the friends list only if not already present
-            setFriendsList((prevFriends) => {
-                console.log("prevFriends list:", friendsList);
-                // Check if user already exists in the updated friends list
-                const alreadyExists = prevFriends.some((friend) => friend.id === user.id);
-                console.log("Exist?", alreadyExists);
-                if (!alreadyExists) {
-                    alert(`${user.username} has been added to your friends list!`);
-                    return [...prevFriends, user];
-                } else {
-                    alert("User is already in your friends list!");
-                    setRecipient(user); // Set as recipient if already in friends list
-                }
-                return prevFriends; // Do nothing if already exists
-            });
-
-
-            // Fetch chat history
-            const chatResponse = await fetch(`http://44.215.29.97:8000/chat-history/${currentId}/${user.id}`);
-            if (!chatResponse.ok) {
-                throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);
-            }
-
-            const { history } = await chatResponse.json();
-            console.log("Fetched chat history:", history);
-            // Transform history to include sender name
-            const transformedHistory = history.map(([sender_id, recipient_id, content]) => ({
-                sender: sender_id === currentId ? "You" : user.username,
-                content,
-            }));
-
-            setChatMessages(transformedHistory);
-
-        } catch (error) {
-            console.error("Error in handleStartChat:", error);
-            alert("An error occurred while starting the chat. Please try again.");
-        }
-
-        setEmail(""); // Clear the input field
-    };
-
-
-    const handleSelectFriend = async (friend) => {
-        try {
-            setRecipient(friend); // Update the current recipient
-            console.log(`Switched to chat with: ${friend.username}`);
-
-            // Fetch chat history for the selected friend
-            const chatResponse = await fetch(
-                `http://44.215.29.97:8000/chat-history/${currentId}/${friend.id}`
-            );
-            if (!chatResponse.ok) {
-                throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);
-            }
-
-            const { history } = await chatResponse.json();
-            console.log("Fetched chat history:", history);
-
-            // Transform history to include sender name
-            const transformedHistory = history.map(([sender_id, recipient_id, content]) => ({
-                sender: sender_id === currentId ? "You" : friend.username,
-                content,
-            }));
-
-            setChatMessages(transformedHistory); // Update chat messages
-        } catch (error) {
-            console.error("Error in handleSelectFriend:", error);
-            alert("Failed to switch chat. Please try again.");
+            setNewMessage('');
         }
     };
 
 
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
+    const handleAddNewFriend = () => {
+        if (newFriendName.trim() !== '') {
+            const newFriendId = friendsList.length + 1;
+            setFriendsList([...friendsList, { id: newFriendId, name: newFriendName }]);
+            setNewFriendName('');
+        }
+    };
+
+    const handleAddNewGroup = () => {
+        if (newGroupName.trim() !== '') {
+            const newGroupId = groupsList.length + 1;
+            setGroupsList([...groupsList, { id: newGroupId, name: newGroupName, members: [], messages: [] }]);
+            setNewGroupName('');
+        }
+    };
+
+    const getChatMessages = () => {
+        if (selectedChat.type === 'private') {
+            const selectedFriend = friendsList.find((f) => f.id === selectedChat.id);
+            return selectedFriend ? selectedFriend.messages : [];
+        } else if (selectedChat.type === 'group') {
+            const selectedGroup = groupsList.find((group) => group.id === selectedChat.id);
+            return selectedGroup ? selectedGroup.messages : [];
+        }
+        return [];
     };
 
     return (
         <div className="chat-page">
-            <div className="sidebar">
-                <input
-                    type="text"
-                    placeholder="Enter Friend's Email"
-                    onChange={handleEmailChange}
-                    className="input-box"
-                />
-                <button onClick={handleStartChat} className="start-chat-button" id="start-chat">Start Chat</button>
-                <h3>Friend List</h3>
-                <div className="dropdown">
-                    <div className="dropdown-header" onClick={toggleDropdown}>
-                        Select Friend
-                        <span className="dropdown-arrow">{isDropdownOpen ? "▲" : "▼"}</span>
+            <div className="friends-and-groups">
+            <div className="friends-list">
+                <h2>Friends</h2>
+                {friendsList.map((friend) => (
+                    <div
+                        key={friend.id}
+                        className={`friend-item ${selectedChat.type === 'private' && selectedChat.id === friend.id ? 'active' : ''}`}
+                        onClick={() => handleChatClick('private', friend.id)}
+                    >
+                        {friend.name}
                     </div>
-                    {isDropdownOpen && (
-                        <ul className="dropdown-list">
-                            {friendsList.map((friend) => (
-                                <li
-                                    key={friend.id}
-                                    onClick={() => handleSelectFriend(friend)} // Click handler
-                                    className="friend-item"
-                                >
-                                    {friend.username}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                ))}
+
+                <div className="add-friend-section">
+                    <input
+                        type="text"
+                        value={newFriendName}
+                        onChange={(e) => setNewFriendName(e.target.value)}
+                        placeholder="New friend's name"
+                    />
+                    <button onClick={handleAddNewFriend}>Add New Friend</button>
                 </div>
             </div>
-            <div className="chat-area">
-                <div className="chat-header">
-                    <span>{recipient ? "Chat With " + recipient.username : "Select a friend"}</span>
-                </div>
-                <div className="chat-box">
-                    {chatMessages.length === 0 ? (
-                        <p>No messages yet. Start the conversation!</p>
-                    ) : (
-                        chatMessages.map((msg, index) => (
-                            <p key={index}>
-                                <strong>{msg.sender}:</strong> {msg.content}
-                            </p>
-                        ))
-                    )}
-                </div>
-                <div className="chat-input">
-                    <textarea
+
+            <div className="groups-list">
+                <h2>Groups</h2>
+                {groupsList.map((group) => (
+                    <div
+                        key={group.id}
+                        className={`group-item ${selectedChat.type === 'group' && selectedChat.id === group.id ? 'active' : ''}`}
+                        onClick={() => handleChatClick('group', group.id)}
+                    >
+                        {group.name}
+                    </div>
+                ))}
+
+                <div className="add-group-section">
+                    <input
                         type="text"
-                        placeholder="Type a message"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}/>
-                    <button onClick={handleSend} className="send-button">Send</button>
+                        value={newGroupName}
+                        onChange={(e) => setNewGroupName(e.target.value)}
+                        placeholder="New group name"
+                    />
+                    <button onClick={handleAddNewGroup}>Add New Group</button>
                 </div>
+            </div>
+            </div>
+
+            <div className="chat-section">
+                <div className="chat-header">
+                    <h2>
+                        {selectedChat.type === 'private'
+                            ? `Chat with ${friendsList.find((f) => f.id === selectedChat.id)?.name}`
+                            : `Group: ${groupsList.find((group) => group.id === selectedChat.id)?.name}`}
+                    </h2>
+                </div>
+
+                <div className="chat-messages">
+                    {getChatMessages().map((msg, index) => (
+                        <div key={index} className="chat-message">
+                            <strong>{msg.sender === currentUser ? 'You' : msg.sender}</strong>: {msg.content}
+                        </div>
+                    ))}
+                </div>
+
+                <form className="chat-input-section" onSubmit={handleSendMessage}>
+                    <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type a message..."
+                    />
+                    <button type="submit">Send</button>
+                </form>
             </div>
         </div>
     );
-};
-
-// Add PropTypes validation
-ChatPage.propTypes = {
-    friendsList: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.number.isRequired,
-            username: PropTypes.string.isRequired,
-            email: PropTypes.string.isRequired,
-        })
-    ).isRequired,
-    setFriendsList: PropTypes.func.isRequired,
 };
 
 export default ChatPage;

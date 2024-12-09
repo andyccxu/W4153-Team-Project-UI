@@ -1,143 +1,178 @@
 .chat-page {
     display: flex;
+    flex-direction: row;
     height: 100vh;
+    background-color: #2c2f33;
+    color: white;
+    font-family: 'Arial', sans-serif;
 }
 
-.sidebar {
+.friends-and-groups {
     width: 25%;
-    background-color: #D3DBEC;
+    background-color: #23272a;
+    padding: 20px;
+    border-right: 1px solid #40444b;
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    border-right: 2px solid #ccc;
-}
-
-.input-box {
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 100%;
-    background-color: #fff;
-}
-
-.start-chat-button {
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #6B9DBC;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.start-chat-button:hover {
-    background-color: #303f9f;
-}
-
-h3 {
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
-
-.dropdown {
-    position: relative;
-    width: 100%;
-}
-
-.dropdown-header {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: white;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.dropdown-arrow {
-    font-size: 12px;
-    margin-left: 5px;
-}
-
-.dropdown-list {
-    margin: 5px 0 0 0;
-    padding: 0;
-    list-style: none;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    position: absolute;
-    width: 100%;
-    z-index: 1000;
-    height: 150px;
     overflow-y: auto;
 }
 
-.dropdown-list li {
+
+.friends-list {
+    margin-bottom: 20px; /* Space between friends and groups */
+}
+
+.groups-list {
+    margin-top: 20px;
+}
+
+.friend-item, .group-item {
     padding: 10px;
+    margin: 5px 0;
     cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    background-color: #2c2f33;
 }
 
-.dropdown-list li:hover {
-    background-color: #f0f0f0;
+.friend-item:hover, .friend-item.active,
+.group-item:hover, .group-item.active {
+    background-color: #7289da;
 }
 
-.chat-area {
-    flex: 1;
+.chat-section {
+    width: 75%;
     display: flex;
     flex-direction: column;
-    background-color: #fff;
+    justify-content: space-between;
+    background-color: #36393f;
 }
 
 .chat-header {
     padding: 20px;
-    background-color: #D3DBEC;
+    border-bottom: 1px solid #40444b;
+    background-color: #2c2f33;
     font-size: 1.2rem;
-    border-bottom: 2px solid #ccc;
 }
 
-.chat-box {
-    flex: 1;
+.chat-messages {
+    flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
+    background-color: #36393f;
 }
 
-.chat-input {
-    display: flex;
-    align-items: center;
+.chat-message {
     padding: 10px;
-    border-top: 2px solid #ccc;
-    background-color: #D3DBEC;
-}
-
-.chat-input textarea {
-    flex: 1;
-    padding: 10px;
+    margin-bottom: 10px;
     border-radius: 5px;
-    border: 1px solid #ccc;
-    margin-right: 10px;
-    resize: none; /* Prevent manual resizing */
-    overflow-y: auto; /* Add vertical scrolling if content overflows */
-    font-size: 14px;
-    line-height: 1.5; /* Adjust line height for better readability */
-    height: 40px; /* Initial height */
-    max-height: 100px; /* Maximum height before scrolling */
-    width: 100%; /* Adjust to fit the parent container */
-    box-sizing: border-box; /* Ensure padding is included in width/height */
+    max-width: 60%;
+    word-wrap: break-word;
+    color: #ffffff;
 }
 
-.send-button {
+.chat-message.you {
+    background-color: #7289da;
+    align-self: flex-end;
+}
+
+.chat-message.other {
+    background-color: #2f3136;
+    align-self: flex-start;
+}
+
+.chat-message strong {
+    font-weight: bold;
+}
+
+.chat-message .message-time {
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+.chat-input-section {
+    padding: 20px;
+    border-top: 1px solid #40444b;
+    background-color: #2c2f33;
+    display: flex;
+}
+
+.chat-input-section input {
+    flex-grow: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    background-color: #40444b;
+    color: white;
+}
+
+.chat-input-section input::placeholder {
+    color: #b9bbbe;
+}
+
+.chat-input-section button {
+    background-color: #7289da;
+    color: white;
     padding: 10px 20px;
-    background-color: #6B9DBC;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.chat-input-section button:hover {
+    background-color: #677bc4;
+}
+
+/* Add Friend and Group Sections */
+.add-friend-section, .add-group-section {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.add-friend-section input, .add-group-section input {
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #40444b;
+    color: white;
+}
+
+.add-friend-section input::placeholder,
+.add-group-section input::placeholder {
+    color: #b9bbbe;
+}
+
+.add-friend-section button, .add-group-section button {
+    padding: 10px 15px;
+    background-color: #7289da;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.send-button:hover {
-    background-color: #303f9f;
+.add-friend-section button:hover, .add-group-section button:hover {
+    background-color: #677bc4;
+}
+
+.invite-friend-btn {
+    padding: 10px 15px;
+    margin-top: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.invite-friend-btn:hover {
+    background-color: #45a049;
 }

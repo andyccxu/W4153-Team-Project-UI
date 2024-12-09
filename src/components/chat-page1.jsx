@@ -1,78 +1,53 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./chat-page1.css";
+import PropTypes from "prop-types";
 
-const ChatPage = ({ friendsList, setFriendsList }) => {
+const ChatPage = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [newMessage, setNewMessage] = useState('');
-    const [chatMessages, setChatMessages] = useState([]);
-    const [websocket, setWebSocket] = useState(null);
-    const [currentId, setCurrentId] = useState(null);
-    const [currentUser, setCurrentUser] = useState(null);
+    const [message, setMessage] = useState(""); // Current message input
+    const websocketRef = useRef(null); // WebSocket reference
     const [email, setEmail] = useState("");
+    const [recipient, setRecipient] = useState(null);
+    const [chatMessages, setChatMessages] = useState([]);
+    const [friendsList, setFriendsList] = useState([]);
+    const currentId = 12;
+    const currentUser = "andy";
 
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
-    };
-
-    // Start chat button logic
-    const handleStartChat = async () => {
-        if (!email.trim()) {
-            alert("Please enter a valid email!");
-            return;
-        }
-
-        try {
-            // Fetch user by email
-            const response = await fetch(`http://localhost:8000/get-user-by-email?email=${email}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch user data");
-            }
-
-            const user = await response.json();
-            if (user && user.id) {
-                // Check if the user is already in the friends list
-                const isAlreadyFriend = friendsList.some((friend) => friend.id === user.id);
-                if (isAlreadyFriend) {
-                    alert("User is already in your friends list!");
-                } else {
-                    // Add user to friends list
-                    setFriendsList([...friendsList, user]);
-                    alert(`${user.username} has been added to your friends list!`);
+    // Fetch friends list on component mount
+    useEffect(() => {
+        const fetchFriends = async () => {
+            try {
+                const response = await fetch(`http://44.215.29.97:8000/friend-list/${currentId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch friend list");
                 }
-            } else {
-                // User not found
-                alert("User not found. Please check the email and try again.");
+
+                const { friends } = await response.json();
+                // Normalize friend list structure
+                const normalizedFriends = friends.map((friend) => ({
+                    id: friend.friend_id, // Map friend_id to id
+                    username: friend.username,
+                    email: friend.email,
+                }));
+                setFriendsList(normalizedFriends); // Initialize the friend list
+                console.log("Fetched friend list:", friends);
+            } catch (error) {
+                console.error("Error fetching friend list:", error);
+                alert("Failed to load friend list. Please try again later.");
             }
-        } catch (error) {
-            console.error("Error fetching user by email:", error);
-            alert("An error occurred. Please try again later.");
-        }
+        };
 
-        // Clear the input field
-        setEmail("");
-    };
-
-    const fetchCurrentUser = async () => {
-        try {
-            const response = await fetch("http://localhost:8000/current-user");
-            if (!response.ok) {
-                throw new Error("Failed to fetch user data");
-            }
-            const data = await response.json();
-            setCurrentId(data.user_id);
-            setCurrentUser(data.username);
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-        }
-    };
+        fetchFriends();
+    }, [currentId]);
 
 
-
-    const initializeWebSocket = () => {
-        const ws = new WebSocket(`ws://44.215.29.97:8000/ws/${currentId}/${currentUser}`);
+    // Establish WebSocket connection
+    useEffect(() => {
+        const ws = new WebSocket(`ws://44.215.29.97:8000/ws/${currentId}`);
+        websocketRef.current = ws;
 
         ws.onopen = () => {
-            console.log('WebSocket connection established');
+            console.log("WebSocket connection established");
         };
 
         ws.onmessage = (event) => {
@@ -81,26 +56,143 @@ const ChatPage = ({ friendsList, setFriendsList }) => {
         };
 
         ws.onclose = () => {
-            console.log('WebSocket connection closed. Reconnecting...');
-            setTimeout(() => initializeWebSocket(), 5000);
+            console.log("WebSocket connection closed");
         };
 
         ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            console.error("WebSocket error:", error);
         };
 
-        setWebSocket(ws);
+        return () => {
+            ws.close(); // Cleanup WebSocket on component unmount
+        };
+    }, [currentId]);
+
+
+    // Handle sending a message
+    const handleSend = () => {
+        if (!recipient) {
+            alert("Please select a recipient to send a message.");
+            return;
+        }
+        if (!message.trim()) {
+            alert("Message cannot be empty.");
+            return;
+        }
+
+        // Format the message to send via WebSocket
+        const formattedMessage = `${recipient.id}:${message}`; // Format as "recipient_id:message"
+        websocketRef.current.send(formattedMessage); // Send message over WebSocket
+
+        // Add the message to the chat box immediately in the same format as chat history
+        setChatMessages((prevMessages) => [
+            ...prevMessages,
+            { sender: "You", content: message }, // Ensure consistent formatting
+        ]);
+
+        setMessage(""); // Clear the input field
     };
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
+    };
+
+
+    const handleStartChat = async () => {
+        if (!email.trim()) {
+            alert("Please enter a valid email!");
+            return;
+        }
+
+        try {
+            // Fetch recipient details
+            const userResponse = await fetch(`http://44.215.29.97:8000/get-user-email?email=${encodeURIComponent(email)}`);
+            if (!userResponse.ok) {
+                if (userResponse.status === 404) {
+                    alert("User not found. Please check the email and try again.");
+                    return;
+                }
+                throw new Error(`Failed to fetch user data. Status: ${userResponse.status}`);
+            }
+
+            const { user } = await userResponse.json();
+            console.log("Fetched user:", user);
+
+            // Add user to the friends list only if not already present
+            setFriendsList((prevFriends) => {
+                console.log("prevFriends list:", friendsList);
+                // Check if user already exists in the updated friends list
+                const alreadyExists = prevFriends.some((friend) => friend.id === user.id);
+                console.log("Exist?", alreadyExists);
+                if (!alreadyExists) {
+                    alert(`${user.username} has been added to your friends list!`);
+                    return [...prevFriends, user];
+                } else {
+                    alert("User is already in your friends list!");
+                    setRecipient(user); // Set as recipient if already in friends list
+                }
+                return prevFriends; // Do nothing if already exists
+            });
+
+
+            // Fetch chat history
+            const chatResponse = await fetch(`http://44.215.29.97:8000/chat-history/${currentId}/${user.id}`);
+            if (!chatResponse.ok) {
+                throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);
+            }
+
+            const { history } = await chatResponse.json();
+            console.log("Fetched chat history:", history);
+            // Transform history to include sender name
+            const transformedHistory = history.map(([sender_id, recipient_id, content]) => ({
+                sender: sender_id === currentId ? "You" : user.username,
+                content,
+            }));
+
+            setChatMessages(transformedHistory);
+
+        } catch (error) {
+            console.error("Error in handleStartChat:", error);
+            alert("An error occurred while starting the chat. Please try again.");
+        }
+
+        setEmail(""); // Clear the input field
+    };
+
+
+    const handleSelectFriend = async (friend) => {
+        try {
+            setRecipient(friend); // Update the current recipient
+            console.log(`Switched to chat with: ${friend.username}`);
+
+            // Fetch chat history for the selected friend
+            const chatResponse = await fetch(
+                `http://44.215.29.97:8000/chat-history/${currentId}/${friend.id}`
+            );
+            if (!chatResponse.ok) {
+                throw new Error(`Failed to fetch chat history. Status: ${chatResponse.status}`);
+            }
+
+            const { history } = await chatResponse.json();
+            console.log("Fetched chat history:", history);
+
+            // Transform history to include sender name
+            const transformedHistory = history.map(([sender_id, recipient_id, content]) => ({
+                sender: sender_id === currentId ? "You" : friend.username,
+                content,
+            }));
+
+            setChatMessages(transformedHistory); // Update chat messages
+        } catch (error) {
+            console.error("Error in handleSelectFriend:", error);
+            alert("Failed to switch chat. Please try again.");
+        }
+    };
+
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
-
-    // Fetch the current user's ID and username, initialize websocket connection
-    useEffect(() => {
-        fetchCurrentUser();
-        initializeWebSocket();
-    }, []);
 
     return (
         <div className="chat-page">
@@ -121,7 +213,13 @@ const ChatPage = ({ friendsList, setFriendsList }) => {
                     {isDropdownOpen && (
                         <ul className="dropdown-list">
                             {friendsList.map((friend) => (
-                                <li key={friend.id}>{friend.username}</li>
+                                <li
+                                    key={friend.id}
+                                    onClick={() => handleSelectFriend(friend)} // Click handler
+                                    className="friend-item"
+                                >
+                                    {friend.username}
+                                </li>
                             ))}
                         </ul>
                     )}
@@ -129,16 +227,42 @@ const ChatPage = ({ friendsList, setFriendsList }) => {
             </div>
             <div className="chat-area">
                 <div className="chat-header">
-                    Chat With <span>{`{username}`}</span>
+                    <span>{recipient ? "Chat With " + recipient.username : "Select a friend"}</span>
                 </div>
-                <div className="chat-box"></div>
+                <div className="chat-box">
+                    {chatMessages.length === 0 ? (
+                        <p>No messages yet. Start the conversation!</p>
+                    ) : (
+                        chatMessages.map((msg, index) => (
+                            <p key={index}>
+                                <strong>{msg.sender}:</strong> {msg.content}
+                            </p>
+                        ))
+                    )}
+                </div>
                 <div className="chat-input">
-                    <input type="text" placeholder="Type a message"/>
-                    <button className="send-button">Send</button>
+                    <textarea
+                        type="text"
+                        placeholder="Type a message"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}/>
+                    <button onClick={handleSend} className="send-button">Send</button>
                 </div>
             </div>
         </div>
     );
+};
+
+// Add PropTypes validation
+ChatPage.propTypes = {
+    friendsList: PropTypes.arrayOf(
+        PropTypes.shape({
+            id: PropTypes.number.isRequired,
+            username: PropTypes.string.isRequired,
+            email: PropTypes.string.isRequired,
+        })
+    ).isRequired,
+    setFriendsList: PropTypes.func.isRequired,
 };
 
 export default ChatPage;

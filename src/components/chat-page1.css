@@ -113,12 +113,20 @@ h3 {
     background-color: #D3DBEC;
 }
 
-.chat-input input {
+.chat-input textarea {
     flex: 1;
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
     margin-right: 10px;
+    resize: none; /* Prevent manual resizing */
+    overflow-y: auto; /* Add vertical scrolling if content overflows */
+    font-size: 14px;
+    line-height: 1.5; /* Adjust line height for better readability */
+    height: 40px; /* Initial height */
+    max-height: 100px; /* Maximum height before scrolling */
+    width: 100%; /* Adjust to fit the parent container */
+    box-sizing: border-box; /* Ensure padding is included in width/height */
 }
 
 .send-button {

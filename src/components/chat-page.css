@@ -1,6 +1,7 @@
 .chat-page {
     display: flex;
     height: 100vh;
+    padding-top: 60px;
 }
 
 .sidebar {

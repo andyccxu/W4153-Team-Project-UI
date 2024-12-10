@@ -40,6 +40,73 @@ const ChatPage = () => {
         }
     }, []);
 
+    // Send user data to backend after setting `currentId` and `currentUsername`
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user"); // Fetch the 'user' key from local storage
+
+        if (!storedUser) {
+            alert("Please log in to continue.");
+            window.location.href = "/login"; // Redirect to login if no user is found
+            return;
+        }
+
+        const sendUserToBackendAndFetchId = async (user) => {
+            try {
+                // Send user to the backend
+                const response = await fetch("https://44.215.29.97:8000/auth/google-login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(user),
+                });
+
+                if (!response.ok) {
+                    const errorDetails = await response.json();
+                    throw new Error(`Error: ${errorDetails.detail}`);
+                }
+
+                console.log("User added to backend successfully.");
+
+                // Fetch the user's ID using email
+                const idResponse = await fetch(
+                    `https://44.215.29.97:8000/get-user-email?email=${encodeURIComponent(user.email)}`
+                );
+
+                if (!idResponse.ok) {
+                    const errorDetails = await idResponse.json();
+                    throw new Error(`Error: ${errorDetails.detail}`);
+                }
+
+                const { user: fetchedUser } = await idResponse.json(); // Destructure the response
+                console.log("Fetched user with ID:", fetchedUser);
+
+                // Set the ID and username in state
+                setCurrentId(fetchedUser.id);
+                setCurrentUsername(fetchedUser.username);
+            } catch (error) {
+                console.error("Error during user setup:", error);
+                alert("Failed to set up the user. Please try again.");
+            } finally {
+                setLoading(false); // Stop loading
+            }
+        };
+
+        try {
+            const currentUser = JSON.parse(storedUser); // Parse the JSON string
+            const userPayload = {
+                email: currentUser.email,
+                username: currentUser.username,
+            };
+
+            sendUserToBackendAndFetchId(userPayload); // Add user and fetch ID
+        } catch (error) {
+            console.error("Failed to parse user from local storage:", error);
+            alert("Invalid user data. Please log in again.");
+            window.location.href = "/login"; // Redirect to login if parsing fails
+        }
+    }, []);
+
     // Fetch friends list on component mount
     useEffect(() => {
         const fetchFriends = async () => {

@@ -109,6 +109,8 @@ const ChatPage = () => {
 
     // Fetch friends list on component mount
     useEffect(() => {
+        if (!currentId) return;
+
         const fetchFriends = async () => {
             try {
                 const response = await fetch(`https://44.215.29.97:8000/friend-list/${currentId}`);
@@ -163,8 +165,35 @@ const ChatPage = () => {
     }, [currentId]);
 
 
-    // Handle sending a message
-    const handleSend = () => {
+    // // Handle sending a message
+    // const handleSend = () => {
+    //     if (!recipient) {
+    //         alert("Please select a recipient to send a message.");
+    //         return;
+    //     }
+    //     if (!message.trim()) {
+    //         alert("Message cannot be empty.");
+    //         return;
+    //     }
+    //
+    //     // Format the message to send via WebSocket
+    //     const formattedMessage = `${recipient.id}:${message}`; // Format as "recipient_id:message"
+    //     websocketRef.current.send(formattedMessage); // Send message over WebSocket
+    //
+    //     // Add the message to the chat box immediately in the same format as chat history
+    //     setChatMessages((prevMessages) => [
+    //         ...prevMessages,
+    //         { sender: "You", content: message }, // Ensure consistent formatting
+    //     ]);
+    //
+    //     setMessage(""); // Clear the input field
+    // };
+    //
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
+    };
+
+    const handleSend = async () => {
         if (!recipient) {
             alert("Please select a recipient to send a message.");
             return;
@@ -174,22 +203,33 @@ const ChatPage = () => {
             return;
         }
 
-        // Format the message to send via WebSocket
-        const formattedMessage = `${recipient.id}:${message}`; // Format as "recipient_id:message"
-        websocketRef.current.send(formattedMessage); // Send message over WebSocket
+        try {
+            // Send message via WebSocket
+            const formattedMessage = `${recipient.id}:${message}`;
+            websocketRef.current.send(formattedMessage);
 
-        // Add the message to the chat box immediately in the same format as chat history
-        setChatMessages((prevMessages) => [
-            ...prevMessages,
-            { sender: "You", content: message }, // Ensure consistent formatting
-        ]);
+            // Add the message to the chat box
+            setChatMessages((prevMessages) => [
+                ...prevMessages,
+                { sender: "You", content: message },
+            ]);
 
-        setMessage(""); // Clear the input field
+            setMessage(""); // Clear input
+
+            // Check if recipient is already in the friend list
+            setFriendsList((prevFriends) => {
+                const alreadyExists = prevFriends.some((friend) => friend.id === recipient.id);
+                if (!alreadyExists) {
+                    return [...prevFriends, recipient];
+                }
+                return prevFriends;
+            });
+        } catch (error) {
+            console.error("Error in handleSend:", error);
+        }
     };
 
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
-    };
+
 
 
     const handleStartChat = async () => {

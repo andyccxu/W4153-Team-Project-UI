@@ -86,7 +86,7 @@ const ChatPage = () => {
                 setCurrentUsername(fetchedUser.username);
             } catch (error) {
                 console.error("Error during user setup:", error);
-                alert("Failed to set up the user. Please try again.");
+                //alert("Failed to set up the user. Please try again.");
             } finally {
                 setLoading(false); // Stop loading
             }
@@ -102,7 +102,7 @@ const ChatPage = () => {
             sendUserToBackendAndFetchId(userPayload); // Add user and fetch ID
         } catch (error) {
             console.error("Failed to parse user from local storage:", error);
-            alert("Invalid user data. Please log in again.");
+            //alert("Invalid user data. Please log in again.");
             window.location.href = "/login"; // Redirect to login if parsing fails
         }
     }, []);
@@ -287,7 +287,7 @@ const ChatPage = () => {
 
         } catch (error) {
             console.error("Error in handleStartChat:", error);
-            alert("An error occurred while starting the chat. Please try again.");
+            //alert("An error occurred while starting the chat. Please try again.");
         }
 
         setEmail(""); // Clear the input field
@@ -319,7 +319,7 @@ const ChatPage = () => {
             setChatMessages(transformedHistory); // Update chat messages
         } catch (error) {
             console.error("Error in handleSelectFriend:", error);
-            alert("Failed to switch chat. Please try again.");
+            //alert("Failed to switch chat. Please try again.");
         }
     };
 

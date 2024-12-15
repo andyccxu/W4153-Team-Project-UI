@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import "./chat-page.css";
 import PropTypes from "prop-types";
+import { GraphQLClient, gql } from "graphql-request";
 
 const ChatPage = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -15,6 +16,22 @@ const ChatPage = () => {
     const [loading, setLoading] = useState(true);
     // const currentId = 12;
     // const currentUser = "yw_test";
+
+    const client = new GraphQLClient("https://44.215.29.97:8000/graphql", {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    const FETCH_FRIENDS_QUERY = gql`
+    query FetchFriendList($userId: Int!) {
+        fetchFriendList(user_id: $userId) {
+            friend_id
+            username
+            email
+        }
+    }
+`;
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user"); // Fetch the 'user' key from local storage
@@ -108,33 +125,78 @@ const ChatPage = () => {
     }, []);
 
     // Fetch friends list on component mount
+    // useEffect(() => {
+    //     if (!currentId) return;
+    //
+    //     const fetchFriends = async () => {
+    //         try {
+    //             const response = await fetch(`https://44.215.29.97:8000/friend-list/${currentId}`);
+    //             if (!response.ok) {
+    //                 throw new Error("Failed to fetch friend list");
+    //             }
+    //
+    //             const { friends } = await response.json();
+    //             // Normalize friend list structure
+    //             const normalizedFriends = friends.map((friend) => ({
+    //                 id: friend.friend_id, // Map friend_id to id
+    //                 username: friend.username,
+    //                 email: friend.email,
+    //             }));
+    //             setFriendsList(normalizedFriends); // Initialize the friend list
+    //             console.log("Fetched friend list:", friends);
+    //         } catch (error) {
+    //             console.error("Error fetching friend list:", error);
+    //             //alert("Failed to load friend list. Please try again later.");
+    //         }
+    //     };
+    //
+    //     fetchFriends();
+    // }, [currentId]);
     useEffect(() => {
         if (!currentId) return;
 
         const fetchFriends = async () => {
+            const query = `
+        query FetchFriendList($userId: Int!) {
+            fetchFriendList(userId: $userId) {
+                friendId
+                username
+                email
+            }
+        }
+    `;
+
+            const variables = { userId: currentId };
+
             try {
-                const response = await fetch(`https://44.215.29.97:8000/friend-list/${currentId}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch friend list");
+                const response = await fetch("https://44.215.29.97:8000/graphql", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ query, variables }),
+                });
+
+                const { data, errors } = await response.json();
+                if (errors) {
+                    throw new Error(`GraphQL Error: ${JSON.stringify(errors)}`);
                 }
 
-                const { friends } = await response.json();
-                // Normalize friend list structure
-                const normalizedFriends = friends.map((friend) => ({
-                    id: friend.friend_id, // Map friend_id to id
+                const friends = data.fetchFriendList.map((friend) => ({
+                    id: friend.friendId, // Map GraphQL field to your frontend format
                     username: friend.username,
                     email: friend.email,
                 }));
-                setFriendsList(normalizedFriends); // Initialize the friend list
-                console.log("Fetched friend list:", friends);
+
+                setFriendsList(friends); // Update the state
             } catch (error) {
-                console.error("Error fetching friend list:", error);
-                //alert("Failed to load friend list. Please try again later.");
+                console.error("Error fetching friend list with GraphQL:", error);
             }
         };
 
         fetchFriends();
     }, [currentId]);
+
 
 
     // Establish WebSocket connection
